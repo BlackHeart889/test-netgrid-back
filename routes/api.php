@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\{
     LoginController,
     ProyectosController,
+    TareasController,
 };
 
 /*
@@ -36,15 +37,31 @@ Route::middleware(['web'])->group(function () {
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/logout', [LoginController::class, 'logout']);
 
-        Route::post('/proyectos/crear', [ProyectosController::class, 'crearProyecto']);
-        Route::delete('/proyectos/eliminar', [ProyectosController::class, 'eliminarProyecto']);
+        Route::middleware(['role:administrador'])->group(function () {
+            Route::post('/proyectos/crear', [ProyectosController::class, 'crearProyecto']);
+            Route::delete('/proyectos/eliminar', [ProyectosController::class, 'eliminarProyecto']);
+            Route::get('/proyectos/creados', [ProyectosController::class, 'proyectosCreados']);
+            Route::patch('/proyectos/actualizar', [ProyectosController::class, 'actualizarProyecto']);
 
-        Route::get('/proyectos/proyectos-creados', [ProyectosController::class, 'proyectosCreados']);
-        Route::get('/proyectos/proyectos-asignados', [ProyectosController::class, 'proyectosAsignados']);
+            Route::post('/tareas/crear', [TareasController::class, 'crearTarea']);
+            Route::post('/proyectos/asignar-proyecto', [ProyectosController::class, 'asignarProyecto']);
+            Route::delete('/tareas/eliminar', [TareasController::class, 'eliminarTarea']);
 
+        });
 
-        Route::patch('/proyectos/actualizar', [ProyectosController::class, 'actualizarProyecto']);
-        Route::post('/proyectos/asignar-proyecto', [ProyectosController::class, 'asignarProyecto']);
+        Route::middleware(['role:regular'])->group(function () {
+            Route::get('/proyectos/asignados', [ProyectosController::class, 'proyectosAsignados']);
+        });
+
+        Route::middleware(['role:administrador|regular'])->group(function () {
+            Route::patch('/proyectos/actualizar', [ProyectosController::class, 'actualizarProyecto']);
+            Route::patch('/tareas/actualizar', [TareasController::class, 'actualizarTarea']);
+
+            Route::get('/proyectos/detalles', [ProyectosController::class, 'detallesProyecto']);
+            Route::get('/tareas/detalles', [TareasController::class, 'detallesTarea']);
+            Route::get('/tareas/creadas', [TareasController::class, 'listarTareas']);
+        });
+
     });
 });
 

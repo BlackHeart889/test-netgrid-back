@@ -18,12 +18,13 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+            $user = Auth::user();
 
-            // return redirect()->intended('dashboard');
             return response([
                 'message' => 'Sesión iniciada.',
                 'data' => [
-                    'nombre' => Auth::user()->nombre,
+                    'nombre' => $user->nombre,
+                    'rol' => $user->roles->first()->name,
                 ]
             ]);
         }
@@ -43,12 +44,12 @@ class LoginController extends Controller
         $user = $request->validate([
             'nombre' => 'required|string|max:100',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required',
-            // 'rol' => 'required|exists:roles,name',
+            'password' => 'required|confirmed|min:8',
+            'rol' => 'required|exists:roles,name',
         ]);
 
         try {
-            User::create($user);
+            User::create($user)->assignRole($user['rol']);
             return response([
                 'message' => 'Usuario registrado correctamente.',
             ], 200);

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 
+use App\Http\Resources\ProyectoResource;
 use App\Http\Resources\ProyectoCollection;
 
 use App\Models\Proyectos\{
@@ -73,6 +74,19 @@ class ProyectosController extends Controller
         }
     }
 
+    public function detallesProyecto(Request $request){
+        $params = $request->validate([
+            'id' => 'required|exists:proyectos,id',
+        ]);
+
+        /**
+         * Validar que el proyecto este asignado al usuario autenticado,
+         * de lo contrario, responder con 422
+         */
+
+        return new ProyectoResource(Proyecto::find($params['id']));
+    }
+
     public function proyectosCreados(Request $request){
         return new ProyectoCollection(Auth::user()->proyectosCreados()->paginate(10));
     }
@@ -82,6 +96,10 @@ class ProyectosController extends Controller
             'id_proyecto' => 'required|exists:proyectos,id',
             'id_usuario' => 'required|exists:users,id',
         ]);
+        /**
+         * Validar que el proyecto haya sido creado por el usuario autenticado,
+         * de lo contrario, responder con 422
+         */
 
         try {
             if($asignacion['id_usuario'] == Auth::user()->id){
@@ -115,6 +133,10 @@ class ProyectosController extends Controller
         $params = $request->validate([
             'id' => 'required|exists:proyectos,id',
         ]);
+         /**
+         * Validar que el proyecto haya sido creado por el usuario autenticado,
+         * de lo contrario, responder con 422
+         */
         try {
             Proyecto::destroy($params['id']);
             return response([
